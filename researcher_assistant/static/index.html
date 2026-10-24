@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Researcher Assistant | Zetaris + Multi-Agent Claim Evaluation + Meterless H-MEM</title>
+  
+  <!-- Modern Inter Font & Lucide Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            },
+            dark: {
+              900: '#0a0d14',
+              800: '#101522',
+              700: '#182032',
+              600: '#232d45',
+              500: '#334155'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="bg-[#0b0f19] text-slate-100 min-h-screen flex flex-col font-sans selection:bg-teal-500 selection:text-white">
+
+  <!-- Top Navigation Header -->
+  <header class="border-b border-slate-800/80 bg-[#0e1424]/90 backdrop-blur-md sticky top-0 z-50 px-6 py-3.5 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-teal-500 via-cyan-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-teal-500/20">
+          <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-lg font-bold tracking-tight text-white">Researcher Assistant</h1>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 font-mono border border-teal-500/20">v1.0</span>
+          </div>
+          <p class="text-xs text-slate-400">Multi-Agent Verification • Zetaris Data Fabric • Meterless H-MEM</p>
+        </div>
+      </div>
+
+      <!-- System Badges & Actions -->
+      <div class="flex items-center gap-4">
+        <div id="zetarisStatusBadge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/60 text-xs">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+          </span>
+          <span class="text-slate-300 font-medium">Zetaris Fabric:</span>
+          <span class="text-teal-400 font-mono text-[11px]" id="zetarisModeLabel">Active</span>
+        </div>
+
+        <button id="toggleHmemBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/80 border border-indigo-700/50 text-indigo-300 text-xs font-medium transition shadow-sm">
+          <i data-lucide="database" class="w-3.5 h-3.5"></i>
+          <span>H-MEM Vault</span>
+          <span id="hmemDecisionsCount" class="px-1.5 py-0.2 rounded-full bg-indigo-500/30 text-[11px] font-mono text-indigo-200">3</span>
+        </button>
+
+        <button id="refreshSystemBtn" title="Consolidate H-MEM Memory" class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+          <i data-lucide="sparkles" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Layout -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-8">
+    
+    <!-- Hero / Input Section -->
+    <section class="relative overflow-hidden rounded-2xl bg-gradient-to-b from-slate-900/90 to-[#0e1424] border border-slate-800 p-6 sm:p-8 shadow-2xl">
+      <div class="absolute -right-20 -top-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="max-w-3xl space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/80 border border-slate-700/80 text-xs text-slate-300">
+          <i data-lucide="cpu" class="w-3.5 h-3.5 text-teal-400"></i>
+          <span>3 Autonomous Agents: <strong>Source</strong> (Zetaris) &rarr; <strong>Analyser</strong> &rarr; <strong>Evaluator</strong></span>
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+          Verify Any Scientific, Technical, or Analytical Claim
+        </h2>
+        <p class="text-sm sm:text-base text-slate-400">
+          Input a claim below. The <strong>Source Agent</strong> queries the Zetaris Data Fabric, the <strong>Analyser Agent</strong> validates evidence notes, and the <strong>Evaluator Agent</strong> delivers a definitive verdict with citation links while logging historical precedents to <strong>Meterless H-MEM</strong>.
+        </p>
+      </div>
+
+      <!-- Input Form -->
+      <form id="claimForm" class="mt-6 space-y-4">
+        <div class="relative">
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative flex-1">
+              <textarea 
+                id="claimInput" 
+                rows="2" 
+                placeholder="Enter a claim to evaluate (e.g. 'Quantum computers have broken RSA-2048 encryption in commercial production')..."
+                class="w-full rounded-xl bg-slate-950/70 border border-slate-700/90 focus:border-teal-400 focus:ring-2 focus:ring-teal-400/20 text-slate-100 placeholder-slate-500 p-4 text-sm sm:text-base resize-none shadow-inner transition outline-none"
+                required
+              ></textarea>
+              <div class="absolute bottom-3 right-3 text-[11px] font-mono text-slate-500" id="charCount">0 chars</div>
+            </div>
+            
+            <button 
+              type="submit" 
+              id="submitBtn"
+              class="self-stretch sm:self-auto px-6 py-4 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-bold text-sm sm:text-base flex items-center justify-center gap-2 shadow-lg shadow-teal-500/25 transition active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+              <span>Evaluate Claim</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sample Claims Pills -->
+        <div class="space-y-2 pt-2">
+          <div class="flex items-center gap-2 text-xs font-medium text-slate-400">
+            <i data-lucide="lightbulb" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span>Or try one of these test claims:</span>
+          </div>
+          <div id="samplePillsContainer" class="flex flex-wrap gap-2">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- Agent Workflow Live Pipeline -->
+    <section id="pipelineSection" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-sm font-semibold tracking-wider uppercase text-slate-400 flex items-center gap-2">
+          <i data-lucide="git-merge" class="w-4 h-4 text-teal-400"></i>
+          <span>Live Multi-Agent Pipeline</span>
+        </h3>
+        <span id="pipelineStatusBadge" class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 font-mono border border-slate-700">
+          Running
+        </span>
+      </div>
+
+      <!-- Agent Steps Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+        
+        <!-- Step 1: H-MEM Memory Retrieval -->
+        <div id="agentStep-hmem" class="agent-step-card p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-indigo-400 font-semibold flex items-center gap-1.5">
+              <i data-lucide="history" class="w-3.5 h-3.5"></i> 01. H-MEM
+            </span>
+            <span class="step-indicator h-2 w-2 rounded-full bg-slate-600"></span>
+          </div>
+          <h4 class="text-sm font-semibold text-white">Precedent Recall</h4>
+          <p class="text-xs text-slate-400 step-desc">Searching historical decision ledger...</p>
+        </div>
+
+        <!-- Step 2: Source Agent (Zetaris) -->
+        <div id="agentStep-source" class="agent-step-card p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-cyan-400 font-semibold flex items-center gap-1.5">
+              <i data-lucide="cloud-search" class="w-3.5 h-3.5"></i> 02. Source
+            </span>
+            <span class="step-indicator h-2 w-2 rounded-full bg-slate-600"></span>
+          </div>
+          <h4 class="text-sm font-semibold text-white">Zetaris Data Aggregator</h4>
+          <p class="text-xs text-slate-400 step-desc">Federating across enterprise pools...</p>
+        </div>
+
+        <!-- Step 3: Analyser Agent -->
+        <div id="agentStep-analyser" class="agent-step-card p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-amber-400 font-semibold flex items-center gap-1.5">
+              <i data-lucide="microscope" class="w-3.5 h-3.5"></i> 03. Analyser
+            </span>
+            <span class="step-indicator h-2 w-2 rounded-full bg-slate-600"></span>
+          </div>
+          <h4 class="text-sm font-semibold text-white">Claim Validation</h4>
+          <p class="text-xs text-slate-400 step-desc">Testing claim validity as per notes...</p>
+        </div>
+
+        <!-- Step 4: Evaluator Agent -->
+        <div id="agentStep-evaluator" class="agent-step-card p-4 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-mono text-teal-400 font-semibold flex items-center gap-1.5">
+              <i data-lucide="award" class="w-3.5 h-3.5"></i> 04. Evaluator
+            </span>
+            <span class="step-indicator h-2 w-2 rounded-full bg-slate-600"></span>
+          </div>
+          <h4 class="text-sm font-semibold text-white">Verdict & Lineage</h4>
+          <p class="text-xs text-slate-400 step-desc">Synthesizing decision & citations...</p>
+        </div>
+
+      </div>
+
+      <!-- Live Stream Console Log -->
+      <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/90 font-mono text-xs text-slate-300 space-y-1.5 max-h-32 overflow-y-auto" id="liveLogConsole">
+        <div class="text-slate-500 flex items-center gap-2">
+          <i data-lucide="terminal" class="w-3.5 h-3.5 text-teal-400"></i>
+          <span>Agent pipeline telemetry ready.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Results Container -->
+    <section id="resultsSection" class="hidden space-y-6">
+      
+      <!-- Decision Banner Card -->
+      <div id="decisionCard" class="rounded-2xl p-6 sm:p-8 border shadow-xl relative overflow-hidden transition-all bg-slate-900/80 border-slate-800">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          
+          <div class="space-y-3 flex-1">
+            <div class="flex flex-wrap items-center gap-3">
+              <span id="decisionBadge" class="px-4 py-1.5 rounded-full font-extrabold text-sm tracking-wider uppercase inline-flex items-center gap-2">
+                <!-- Injected via JS -->
+              </span>
+              <span id="confidencePill" class="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                Confidence: --%
+              </span>
+              <span id="hmemCompoundPill" class="px-3 py-1 rounded-full text-xs font-mono text-indigo-300 bg-indigo-950/80 border border-indigo-700/60 flex items-center gap-1.5">
+                <i data-lucide="bookmark" class="w-3 h-3"></i>
+                <span id="compoundIdLabel">DEC.L2.2026.---</span>
+              </span>
+            </div>
+
+            <div>
+              <p class="text-xs text-slate-400 font-mono uppercase tracking-wider">Investigated Claim</p>
+              <h3 id="evaluatedClaimTitle" class="text-lg sm:text-xl font-bold text-white mt-1 leading-snug">
+                <!-- Injected via JS -->
+              </h3>
+            </div>
+          </div>
+
+          <!-- Circular Metric Display -->
+          <div class="flex items-center gap-4 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80 self-stretch sm:self-auto justify-around">
+            <div class="text-center px-2">
+              <div id="sourcesCountMetric" class="text-2xl font-bold text-cyan-400 font-mono">0</div>
+              <div class="text-[11px] text-slate-400 uppercase tracking-wider">Zetaris Sources</div>
+            </div>
+            <div class="h-8 w-px bg-slate-800"></div>
+            <div class="text-center px-2">
+              <div id="precedentsCountMetric" class="text-2xl font-bold text-indigo-400 font-mono">0</div>
+              <div class="text-[11px] text-slate-400 uppercase tracking-wider">H-MEM Precedents</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="flex border-b border-slate-800 gap-2">
+        <button data-tab="tab-explanation" class="tab-btn active px-4 py-2.5 text-sm font-semibold text-teal-400 border-b-2 border-teal-400 flex items-center gap-2">
+          <i data-lucide="file-text" class="w-4 h-4"></i>
+          <span>Evaluator Synthesis & Explanation</span>
+        </button>
+        <button data-tab="tab-sources" class="tab-btn px-4 py-2.5 text-sm font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2">
+          <i data-lucide="link" class="w-4 h-4"></i>
+          <span>Contributing Articles & Links</span>
+          <span id="sourcesTabCount" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">0</span>
+        </button>
+        <button data-tab="tab-analyser" class="tab-btn px-4 py-2.5 text-sm font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent flex items-center gap-2">
+          <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+          <span>Analyser Breakdown</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: Evaluator Synthesis & Explanation -->
+      <div id="tab-explanation" class="tab-pane space-y-6">
+        <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-6 sm:p-8 space-y-6">
+          <div class="space-y-4 prose prose-invert max-w-none text-slate-300 leading-relaxed" id="explanationContent">
+            <!-- Injected via JS -->
+          </div>
+
+          <!-- Precedent callout if available -->
+          <div id="precedentCalloutBox" class="hidden p-4 rounded-xl bg-indigo-950/40 border border-indigo-700/50 space-y-2">
+            <div class="flex items-center gap-2 text-indigo-300 text-xs font-semibold uppercase tracking-wider font-mono">
+              <i data-lucide="git-branch" class="w-4 h-4"></i>
+              <span>Meterless H-MEM Decision Precedent</span>
+            </div>
+            <p id="precedentCalloutText" class="text-xs text-indigo-200 leading-normal"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Contributing Articles & Links -->
+      <div id="tab-sources" class="tab-pane hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <p class="text-xs text-slate-400">
+            Articles and research data federated through Zetaris that contributed to this evaluation:
+          </p>
+        </div>
+
+        <div id="contributingArticlesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+      <!-- Tab 3: Analyser Breakdown -->
+      <div id="tab-analyser" class="tab-pane hidden space-y-6">
+        <div class="rounded-2xl bg-slate-900/60 border border-slate-800 p-6 space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-400 uppercase font-mono">Preliminary Verdict</span>
+              <div id="preliminaryVerdictText" class="text-lg font-bold text-white">--</div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-400 uppercase font-mono">Support Evidence Ratio</span>
+              <div id="supportRatioText" class="text-lg font-bold text-teal-400">0%</div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
+              <span class="text-xs text-slate-400 uppercase font-mono">Refute Evidence Ratio</span>
+              <div id="refuteRatioText" class="text-lg font-bold text-rose-400">0%</div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <h4 class="text-sm font-semibold text-white">Individual Note Stance Evaluations</h4>
+            <div id="notesBreakdownList" class="space-y-3">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Slide-out Drawer: Meterless H-MEM Vault -->
+  <aside id="hmemDrawer" class="fixed inset-y-0 right-0 w-full max-w-xl bg-[#0e1424] border-l border-slate-800 shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col">
+    <div class="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-lg bg-indigo-500/20 text-indigo-400">
+          <i data-lucide="database" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 class="text-base font-bold text-white">Meterless H-MEM Vault</h3>
+          <p class="text-xs text-slate-400">Hierarchical Memory & Historical Decision Ledger</p>
+        </div>
+      </div>
+      <button id="closeHmemDrawerBtn" class="p-2 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- H-MEM Metrics Header -->
+    <div class="p-4 bg-slate-950/50 border-b border-slate-800 grid grid-cols-3 gap-2 text-center text-xs">
+      <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+        <div class="text-slate-400 text-[10px] font-mono uppercase">L0 Ephemeral</div>
+        <div id="hmemL0Count" class="text-sm font-bold text-slate-200 mt-0.5">0</div>
+      </div>
+      <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+        <div class="text-slate-400 text-[10px] font-mono uppercase">L1 Working</div>
+        <div id="hmemL1Count" class="text-sm font-bold text-amber-400 mt-0.5">0</div>
+      </div>
+      <div class="p-2.5 rounded-lg bg-slate-900/80 border border-slate-800">
+        <div class="text-slate-400 text-[10px] font-mono uppercase">L2 Decisions</div>
+        <div id="hmemL2Count" class="text-sm font-bold text-teal-400 mt-0.5">3</div>
+      </div>
+    </div>
+
+    <!-- Decision List -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-3" id="hmemDecisionList">
+      <!-- Injected via JS -->
+    </div>
+
+    <!-- Drawer Footer Actions -->
+    <div class="p-4 border-t border-slate-800 bg-slate-900/60 flex items-center justify-between gap-3">
+      <button id="runMetabolismBtn" class="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold flex items-center justify-center gap-2 transition shadow-md shadow-indigo-600/20">
+        <i data-lucide="sparkles" class="w-4 h-4"></i>
+        <span>Trigger Sleep/Dream Consolidation</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Backdrop for Drawer -->
+  <div id="drawerBackdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity"></div>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 py-4 px-6 text-center text-xs text-slate-500 bg-[#0a0d16]">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <p>Researcher Assistant &copy; 2026 • Powered by Zetaris Data Aggregator & Meterless H-MEM Architecture</p>
+      <div class="flex items-center gap-4">
+        <span class="hover:text-slate-400 cursor-pointer" onclick="toggleHmemDrawer()">H-MEM Ledger</span>
+        <span class="text-slate-700">•</span>
+        <span class="text-teal-400">FastAPI Agent Backend</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

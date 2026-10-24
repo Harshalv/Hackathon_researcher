@@ -1,0 +1,95 @@
+/* Custom animations and styling refinements */
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(20, 184, 166, 0.2), inset 0 0 10px rgba(20, 184, 166, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(20, 184, 166, 0.4), inset 0 0 15px rgba(20, 184, 166, 0.2);
+  }
+}
+
+.agent-step-active {
+  border-color: #14b8a6 !important;
+  background-color: rgba(20, 184, 166, 0.08) !important;
+  animation: pulseGlow 2s infinite ease-in-out;
+}
+
+.agent-step-active .step-indicator {
+  background-color: #14b8a6 !important;
+  box-shadow: 0 0 10px #14b8a6;
+}
+
+.agent-step-completed {
+  border-color: #0d9488 !important;
+  background-color: rgba(13, 148, 136, 0.04) !important;
+}
+
+.agent-step-completed .step-indicator {
+  background-color: #10b981 !important;
+}
+
+/* Stance Pills */
+.stance-supports {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.stance-refutes {
+  background-color: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+
+.stance-partially-supports {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.stance-inconclusive {
+  background-color: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+/* Decision Cards Theme */
+.decision-valid {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(52, 211, 153, 0.4) !important;
+  box-shadow: 0 20px 40px -15px rgba(16, 185, 129, 0.25) !important;
+}
+
+.decision-refuted {
+  background: linear-gradient(135deg, rgba(136, 19, 55, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(251, 113, 133, 0.4) !important;
+  box-shadow: 0 20px 40px -15px rgba(244, 63, 94, 0.25) !important;
+}
+
+.decision-partially-valid {
+  background: linear-gradient(135deg, rgba(120, 53, 15, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  box-shadow: 0 20px 40px -15px rgba(245, 158, 11, 0.25) !important;
+}
+
+.decision-inconclusive {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.95) 100%) !important;
+  border-color: rgba(148, 163, 184, 0.3) !important;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
